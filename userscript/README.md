@@ -12,7 +12,7 @@ FlMMLonHTML5 に置き換えて動作させるユーザスクリプトです。
 以下の環境では多分動作しません。原因は調査中です。
 
 - Firefox + Greasemonkey (クリックが反応しない)
-‐ Opera + Violetmonkey (ピコカキコ再生時に「Compiling...」で止まる)
+- Opera + Violetmonkey (ピコカキコ再生時に「Compiling...」で止まる)
 
 ## インストール
 
@@ -22,4 +22,4 @@ Greasemonkeyをインストールしたブラウザで、[nicopedia-flmmlonhtml5
 
 ## 仕様
 
-‐ ピコカキコを同時に再生できる数は最大６つ (Chrome の仕様？)
+- ピコカキコを同時に再生できる数は最大６つ (Chrome の仕様？)
