@@ -2,11 +2,12 @@
 // @name        Nicopedia-FlMMLonHTML5
 // @namespace   https://github.com/kosh04/FlMMLonHTML5
 // @version     0.20150616
-// @description ニコニコ大百科のピコカキコをFlMMLonHTML5に置き換えます
+// @description ニコニコ大百科のピコカキコプレーヤーを試験的にFlMMLonHTML5に置き換えます
+// @updateURL   https://github.com/kosh04/FlMMLonHTML5/raw/feature-userscript/userscript/nicopedia-flmmlonhtml5.user.js
 // @grant       GM_getResourceText
 // @match       http://dic.nicovideo.jp/*
 // @require     https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js
-// @resource    flmmlworker.js  https://rawgit.com/kosh04/FlMMLonHTML5/master/project/flmmlworker-raw.js
+// @resource    flmmlworker.js  https://rawgit.com/kosh04/FlMMLonHTML5/feature-userscript/project/flmmlworker-raw.js
 // @author      kosh (mono)
 // ==/UserScript==
 
@@ -31,8 +32,8 @@ function loadScript(src) {
     document.head.appendChild(s);
 }
 
-loadScript("https://rawgit.com/kosh04/FlMMLonHTML5/master/project/flmmlonhtml5-raw.js");
-loadScript("https://rawgit.com/kosh04/FlMMLonHTML5/master/project/flmmlplayer-raw.js");
+loadScript("https://rawgit.com/kosh04/FlMMLonHTML5/feature-userscript/project/flmmlonhtml5-raw.js");
+loadScript("https://rawgit.com/kosh04/FlMMLonHTML5/feature-userscript/project/flmmlplayer-raw.js");
 
 (function($) {
     "use strict";
