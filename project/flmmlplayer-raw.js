@@ -204,11 +204,6 @@ var FlMMLPlayer = function (document) {
 
         divVolume.appendChild(rangeVolume);
 
-        var scripts = document.getElementsByTagName("script"),
-            parent = scripts[scripts.length - 1].parentNode;
-        parent.appendChild(divContainer);
-        parent.appendChild(divVolume);
-
         var flmml = this.flmml = new FlMMLonHTML5(options.workerURL);
         flmml.addEventListener("compilecomplete", this.onCompileComplete.bind(this));
         flmml.addEventListener("buffering", this.onBuffering.bind(this));
@@ -217,6 +212,14 @@ var FlMMLPlayer = function (document) {
         if (options.volume !== undefined) {
             flmml.setMasterVolume(options.volume);
         }
+    }
+
+    FlMMLPlayer.prototype.show = function (elem) {
+        var divPlayer = document.createElement("div");
+        divPlayer.className = "pikoplayer";
+        divPlayer.appendChild(this.divContainer);
+        divPlayer.appendChild(this.divVolume);
+        elem.parentNode.replaceChild(divPlayer, elem);
     }
 
     FlMMLPlayer.prototype.changeStatus = function (str) {
