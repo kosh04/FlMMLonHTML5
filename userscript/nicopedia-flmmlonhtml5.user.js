@@ -45,13 +45,10 @@ loadScript("https://rawgit.com/kosh04/FlMMLonHTML5/feature-userscript/project/fl
     $("[id^=piko]").each(function() {
         var $piko = $(this);
         var mml_id = $piko.attr("id").substring(4); // "piko777" -> "777"
-        $piko.children("img")
-             .removeAttr("onclick")
-             .on("click", function() {
-                 var player = new FlMMLPlayer({
-                     mmlURL: "/mml/" + mml_id,
-                     workerURL: workerURL
-                 }).show(this);
-             });
+        var code = "new FlMMLPlayer(%s).show(this);".replace("%s", JSON.stringify({
+            mmlURL: "/mml/" + mml_id,
+            workerURL: workerURL
+        }));
+        $piko.children("img").attr("onclick", code);
     });
 })(jQuery);
