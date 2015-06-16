@@ -8,11 +8,8 @@ FlMMLonHTML5 に置き換えて動作させるユーザスクリプトです。
 ## 動作環境
 
 - Chrome + Tempermonkey
-
-以下の環境では多分動作しません。原因は調査中です。
-
-- Firefox + Greasemonkey (クリックが反応しない)
-- Opera + Violetmonkey (ピコカキコ再生時に「Compiling...」で止まる)
+- Firefox + Greasemonkey
+- Opera + Violetmonkey
 
 ## インストール
 
