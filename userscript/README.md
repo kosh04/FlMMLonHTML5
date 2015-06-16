@@ -23,3 +23,4 @@ Greasemonkeyをインストールしたブラウザで、[nicopedia-flmmlonhtml5
 ## 仕様
 
 - ピコカキコを同時に再生できる数は最大６つ (Chrome の仕様？)
+  - `Uncaught NotSupportedError: Failed to construct 'AudioContext': The number of hardware contexts provided (6) is greater than or equal to the maximum bound (6).`
