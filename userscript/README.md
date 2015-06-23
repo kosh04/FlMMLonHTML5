@@ -1,5 +1,7 @@
 ## nicopedia-flmmlonhtml5.user.js
 
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/kosh04/FlMMLonHTML5?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 ニコニコ大百科のピコカキコ再生 (シーケンサ本体とプレイヤーUI) を
 FlMMLonHTML5 に置き換えて動作させるユーザスクリプトです。
 
