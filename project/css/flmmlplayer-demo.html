@@ -1,0 +1,93 @@
+<!doctype html>
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="flmmlplayer.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.1/jquery.min.js"></script>
+    <style>
+     body {
+         /* background: tomato; */
+     }
+    </style>
+</head>
+
+<body>
+
+<form>
+    <fieldset>
+        <label><input type="radio" name="state" value=".state.loading" id="state-loading">Loading</label>
+        <label><input type="radio" name="state" value=".state.ready" id="state-ready">Play MML</label>
+        <label><input type="radio" name="state" value=".state.play" id="state-play">Play</label>
+    </fieldset>
+</form>
+
+<div class="flmmlplayer">
+    <div class="container">
+        <div class="state loading">Loading...</div>
+        <div class="state ready">
+            <button class="play-mml">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAASFBMVEUAAAAAmgAAlQAAlwAAmAAAmQAAmgAAlwAAmwAAmQAAmQAAmQAAmAAAmQAAmQAAmAAAlwAAmQAAmQAAmAAAlwAAmQAAmQAAmADD6lrGAAAAF3RSTlMABwQKGRUNJRE5IC9UKkRqYE9ANXNkRrSOT5UAAACQSURBVBjTbZFbEsMgCEV9oIivxKQt+99p0cm0fnA+z1xHuBjjrPWCtc6ZB3E+phBSiv6vrU+QETHDpsVhIaK7ZQiil42AN3Oto1NBSa9wyqWzcJy1U8shzmxAqrx4neMqy4q8Tn446rTeGmj9zT8GNYhTfg7eKJBUqT9XP1JH0oZX11QL2atbyu0lh71k9Rxfym0PdbeElC0AAAAASUVORK5CYII=">
+                <div class="message">Play MML</div>
+            </button>
+        </div>
+        <div class="state play on">
+            <button class="playpause play">
+                <img title="Play"  src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAASFBMVEUAAAAAmgAAlQAAlwAAmAAAmQAAmgAAlwAAmwAAmQAAmQAAmQAAmAAAmQAAmQAAmAAAlwAAmQAAmQAAmAAAlwAAmQAAmQAAmADD6lrGAAAAF3RSTlMABwQKGRUNJRE5IC9UKkRqYE9ANXNkRrSOT5UAAACQSURBVBjTbZFbEsMgCEV9oIivxKQt+99p0cm0fnA+z1xHuBjjrPWCtc6ZB3E+phBSiv6vrU+QETHDpsVhIaK7ZQiil42AN3Oto1NBSa9wyqWzcJy1U8shzmxAqrx4neMqy4q8Tn446rTeGmj9zT8GNYhTfg7eKJBUqT9XP1JH0oZX11QL2atbyu0lh71k9Rxfym0PdbeElC0AAAAASUVORK5CYII=" />
+                <img title="Pause" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAAUVBMVEUAgf8Agv0AdvwAf/0AgP8Afv4AgPsAgP8Akf8Af/8AfvwAfv8Af/8AffoAfv8Af/0Afv8Agf8AgP0AgP8Agf8Agv8AgP0Aff0Agf8Afv8Af/5GU6gfAAAAGnRSTlMQCgZFLxwVDAJfQDgqHhigJyOWiFErdnZZWQOnFfsAAACjSURBVBjTbZFLDsMgDERtEzDhl5Bv2/sftDaq2i48i5H8JMwwQIxEyPARI1GMIIwheO9rFQvARAo5+H5OQ2f3gQUSgi85uaGUSwUkIGhrfonmWT2vTRBCnZyO963upioIQ8+HjvuufuQeFK7pqeO2qT/SKpBbSWPbsozNqTQGbMX9Q1caWtA+bl1kR/qFv65vePOZZiFmdQJxlFxFo2SkaH7HG2/2EtuThcAOAAAAAElFTkSuQmCC" />
+            </button>
+            <button class="stop" title="Stop" disabled>
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAAPFBMVEX+AD7/AD//AED/AEn+AD//AD/+AD/+AEH/ADn9ADv/AE3+AD79AD7/AD7/AED+AD7/AED8AD7/AD7+AD9mm+jzAAAAE3RSTlMqFhIIaUY9Hw0ZA1lOQjQmLWNiJUEu2wAAAINJREFUGNNtkUsOwzAIRMdgg/920vvftSiL1lJ47J6EgAG1Mmei8ECUmWtFNVV04WFpMV3BOSimjGQMmdCQGUy6pbcrGlfrspUYuUA+B4KSQTr7KftUAi1pp2yyCAHjPuU9EKxSPGVMpspbFle67e4gdyV3efdMNxA3un/Ie/9Cdt/xBc2vEO2zvZ1rAAAAAElFTkSuQmCC">
+            </button>
+            <div class="status">
+                <div class="time">00:00/77:77</div>
+            </div>
+            <button class="volume" title="Volume">
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAAS1BMVEV+fgB+fgB9fQB+fgB+fgCAgAB+fgB+fgB5eQB+fgB/fwCAgACPjwB+fgB9fQB8fAB9fQCIiAB+fgB+fgB9fQB+fgB/fwCAgAB+fgDkkneCAAAAGHRSTlMVLykkHRlGNg47IQoEXU0RPwd8aVVRhT4xQnacAAAAkklEQVQY04XR2w7DIAgGYASVauthW7vx/k+6v+mW7IJk3PkFEJG2bbuty6AUq4jUmGhZgTCQcEAYVyjBkFY5aJnTLEAHnRYl6Cv3w8xKkESEWljJfW+GyMqR6GNHe9gZfSIVWFlxusz2rMCRJEyc7hc21KNpZM0/2AuafvH5D91y7yJ/JHd495nuQtzVuUt2v+MNB6QSU7F5AiUAAAAASUVORK5CYII=">
+            </button>
+        </div>
+    </div>
+    <div class="volume-control">
+        <input type="range" value="100" min="0" max="127" step="1">
+    </div>
+</div>
+
+<script>
+ function clickEventHandler() {
+     $(".container > .state").removeClass("on");
+     $(this.value).addClass("on");
+ }
+
+ $("#state-loading").on("click", clickEventHandler);
+ $("#state-ready").on("click", clickEventHandler);
+ $("#state-play").on("click", clickEventHandler);
+
+ $(".play-mml").on("click", function() {
+     $("#state-play").click();
+ });
+
+ $("button.playpause").on("click", function() {
+     // play -> pause
+     if (this.classList.contains("play")) {
+         this.classList.remove("play");
+         this.classList.add("pause");
+         var btnStop = this.nextElementSibling;
+         btnStop.disabled = false;
+     }
+     // pause -> play
+     else {
+         this.classList.remove("pause");
+         this.classList.add("play");
+     }
+ });
+
+ $("button.stop").on("click", function() {
+     this.disabled = true;
+     var btnPlayPause = this.previousElementSibling;
+     btnPlayPause.classList.remove("pause");
+     btnPlayPause.classList.add("play");
+ });
+
+ $("button.volume").on("click", function() {
+     $(".volume-control").toggleClass("visible");
+ });
+</script>
+</body>
