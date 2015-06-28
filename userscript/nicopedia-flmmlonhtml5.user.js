@@ -47,6 +47,8 @@ loadScript("https://rawgit.com/kosh04/FlMMLonHTML5/feature-userscript/project/fl
         var mml_id = $piko.attr("id").substring(4); // "piko777" -> "777"
         var code = "new FlMMLPlayer(%s).show(this);".replace("%s", JSON.stringify({
             mmlURL: "/mml/" + mml_id,
+            height: "1.75em",
+            underground: true,
             workerURL: workerURL
         }));
         $piko.children("img").attr("onclick", code);
