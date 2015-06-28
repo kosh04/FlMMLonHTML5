@@ -1,359 +1,653 @@
 ﻿"use strict";
 
-var FlMMLPlayer = function (document) {
+var FlMMLPlayer = function (window, document) {
     var MMLST_ARG = 1,
-        MMLST_LOADING = 2,
-        MMLST_SUCCEED = 3,
-        MMLST_FAILED = 4,
+        MMLST_WAIT = 2,
+        MMLST_LOADING = 3,
+        MMLST_SUCCEED = 4,
+        MMLST_FAILED = 5,
 
-        dispBkgColor = "RGBA(255,255,255,0.6)",
-        dispBorder = "1px inset RGBA(255,255,255,0.8)",
+        players = [];
 
-        dx, dy;
+    function extend(target, object) {
+        for (var name in object) {
+            target[name] = object[name];
+        }
+        return target;
+    }
 
-    function removeChildren(elem) {
-        var child;
+    function addEL(elem, type, func) {
+        elem.addEventListener(type, func);
+    }
 
-        while ((child = elem.lastChild)) {
-            elem.removeChild(child);
+    function apdChild(elem, child) {
+        elem.appendChild(child);
+    }
+
+    function clone(elem) {
+        return elem.cloneNode();
+    }
+
+    function createSVGElem(name) {
+        return document.createElementNS("http://www.w3.org/2000/svg", name);
+    }
+
+    function setAttrNS(elem, name, value) {
+        elem.setAttributeNS(null, name, value);
+    }
+
+    function setAttrsNS(elem, list) {
+        for (var v in list) {
+            elem.setAttributeNS(null, v, list[v]);
         }
     }
 
-    // button要素のデフォルトのボーダー幅を確認
-    function checkButtonBorder() {
-        var s, btnDmy, divDmy, rectBtn, rectDiv;
+    function show() {
+        for (var i = arguments.length; i--; ) {
+            arguments[i].style.display = "inline";
+        }
+    }
 
-        btnDmy = document.createElement("button");
-        s = btnDmy.style;
-        s.margin = "0";
-        s.position = "relative";
-        s.width = s.height = "20px";
-        s.visibility = "hidden";
+    function hide() {
+        for (var i = arguments.length; i--;) {
+            arguments[i].style.display = "none";
+        }
+    }
 
-        divDmy = document.createElement("div");
-        s = divDmy.style;
-        s.position = "absolute";
-        s.left = s.top = "0";
-        s.width = s.height = "20px";
+    //function removeChildren(elem) {
+    //    var child;
+    //    while ((child = elem.lastChild)) {
+    //        elem.removeChild(child);
+    //    }
+    //}
 
-        btnDmy.appendChild(divDmy);
-        document.body.appendChild(btnDmy);
-        rectBtn = btnDmy.getBoundingClientRect();
-        rectDiv = divDmy.getBoundingClientRect();
-        dx = rectBtn.left - rectDiv.left;
-        dy = rectBtn.top - rectDiv.top;
-        document.body.removeChild(btnDmy);
+    function prevDefMouseLBtn(e) {
+        if (e.buttons & 1) e.preventDefault();
     }
 
     function FlMMLPlayer(options) {
-        var s;
+        var no = this.no = players.length;
+
+        var hue = this.hue = options.hue == null ? 200 : options.hue;
+        this.volume = options.volume == null ? 100.0 : options.volume;
+        this.logVolume = !!options.logVolume;
+        this.workerURL = options.workerURL;
 
         if (options.mmlURL && options.mmlURL !== "") {
-            var xhr = this.xhr = new XMLHttpRequest();
-            xhr.addEventListener("readystatechange", this.onReadyStateChange.bind(this));
-            xhr.open("GET", options.mmlURL);
-            xhr.send(null);
-            this.mmlStatus = MMLST_LOADING;
+            this.mmlURL = options.mmlURL;
+            this.mmlStatus = MMLST_WAIT;
         } else {
             this.mml = options.mml;
             this.mmlStatus = MMLST_ARG;
         }
 
-        if (dx === undefined || dy === undefined) checkButtonBorder();
+        var svg = this.svg = createSVGElem("svg");
+        setAttrsNS(svg, {
+            id: "flmmlplayer" + no,
+            viewBox: "0 0 600 100"
+        });
+        svg.style.height = options.height || "1.5em";
+        addEL(svg, "mousedown", prevDefMouseLBtn);
+        addEL(svg, "mousemove", prevDefMouseLBtn);
 
-        var divContainer = this.divContainer = document.createElement("div");
-        s = divContainer.style;
-        s.display = "inline-block";
-        s.position = "relative";
-        s.left = s.top = "0";
-        s.width = "128px";
-        s.height = "20px";
-        s.color = "black";
-        s.textAlign = "center";
-        s.fontSize = "12px";
-        s.fontFamily = "'Arial', sans-serif";
-        s.zIndex = "0";
-        s.boxSizing = "border-box";
-        if (this.mmlStatus === MMLST_LOADING) {
-            s.backgroundColor = dispBkgColor;
-            s.border = dispBorder;
+        var style = document.createElement("style");
+        style.setAttribute("type", "text/css");
+        apdChild(style, document.createTextNode("\
+svg#flmmlplayer" + no + " .clickable-button:active{fill:url(#gradBtnPushed" + no + ");}\
+svg#flmmlplayer" + no + " .clickable-button:hover{stroke:hsl(" + hue + ",100%,75%)}\
+svg#flmmlplayer" + no + " text{text-anchor:middle;pointer-events:none}\
+"));
+        apdChild(svg, style);
 
-            var divSysMsg = this.divSysMsg = document.createElement("div");
-            s = divSysMsg.style;
-            s.marginLeft = s.marginRight = "-1px";
-            s.marginTop = "-0.5em";
-            s.position = "absolute";
-            s.top = "9px";
-            s.width = "128px";
+        var defs = createSVGElem("defs");
 
-            divSysMsg.appendChild(document.createTextNode("Loading..."));
-            divContainer.appendChild(divSysMsg);
-        } else {
-            s.backgroundColor = "transparent";
+        var filterGlow = createSVGElem("filter"),
+            feBlur = createSVGElem("feGaussianBlur"),
+            feMerge = createSVGElem("feMerge"),
+            feMergeNodeGlow = createSVGElem("feMergeNode"),
+            feMergeNodeSrc = createSVGElem("feMergeNode");
+        setAttrsNS(filterGlow, {
+            id: "filterGlow" + no,
+            x: "-150%",
+            y: "-100%",
+            width: "600%",
+            height: "400%"
+        });
+        setAttrsNS(feBlur, {
+            "in": "SourceGraphic",
+            stdDeviation: 8,
+            result: "blur"
+        });
+        setAttrNS(feMergeNodeGlow, "in", "blur");
+        setAttrNS(feMergeNodeSrc, "in", "SourceGraphic");
+        apdChild(feMerge, feMergeNodeGlow);
+        apdChild(feMerge, feMergeNodeSrc);
+        apdChild(filterGlow, feBlur);
+        apdChild(filterGlow, feMerge);
+        apdChild(defs, filterGlow);
+
+        var gradBtn = createSVGElem("linearGradient"),
+            gradBtnPushed = createSVGElem("linearGradient"),
+            stopBtnL = createSVGElem("stop"),
+            stopBtnD = createSVGElem("stop");
+        setAttrsNS(gradBtn, {
+            id: "gradBtn" + no,
+            x1: "0%",
+            y1: "0%",
+            x2: "0%",
+            y2: "100%"
+        });
+        setAttrsNS(stopBtnL, {
+            offset: 0,
+            "stop-color": "hsl(" + hue + ",30%,98%)"
+        });
+        setAttrsNS(stopBtnD, {
+            offset: 1,
+            "stop-color": "hsl(" + hue + ",30%,83%)"
+        });
+        apdChild(gradBtn, stopBtnL);
+        apdChild(gradBtn, stopBtnD);
+        setAttrsNS(gradBtnPushed, {
+            id: "gradBtnPushed" + no,
+            x1: "0%",
+            y1: "0%",
+            x2: "0%",
+            y2: "100%"
+        });
+        stopBtnD = clone(stopBtnD);
+        stopBtnL = clone(stopBtnL);
+        setAttrNS(stopBtnD, "offset", 0);
+        setAttrNS(stopBtnL, "offset", 1);
+        apdChild(gradBtnPushed, stopBtnD);
+        apdChild(gradBtnPushed, stopBtnL);
+        apdChild(defs, gradBtn);
+        apdChild(defs, gradBtnPushed);
+
+        var gradDisp = createSVGElem("linearGradient"),
+            stopDispD = createSVGElem("stop"),
+            stopDispL = createSVGElem("stop");
+        setAttrsNS(gradDisp, {
+            id: "gradDisp" + no,
+            x1: "0%",
+            y1: "0%",
+            x2: "0%",
+            y2: "100%"
+        });
+        setAttrsNS(stopDispD, {
+            offset: 0,
+            "stop-color": "hsl(" + hue + ",100%,2%)"
+        });
+        setAttrsNS(stopDispL, {
+            offset: 1,
+            "stop-color": "hsl(" + hue + ",100%,30%)"
+        });
+        apdChild(gradDisp, stopDispD);
+        apdChild(gradDisp, stopDispL);
+        apdChild(defs, gradDisp);
+
+        apdChild(svg, defs);
+        
+        var gPlayFirst = this.gPlayFirst = createSVGElem("g");
+        addEL(gPlayFirst, "click", this.playFirst.bind(this));
+
+        var rectBtn = this.rectBtn = createSVGElem("rect");
+        setAttrsNS(rectBtn, {
+            x: 5,
+            y: 5,
+            width: 90,
+            height: 90,
+            rx: 6,
+            ry: 6,
+            fill: "url(#gradBtn" + no + ")",
+            stroke: "hsl(" + hue + ",15%,50%)",
+            "stroke-width": 4,
+            "class": "clickable-button"
+        });
+        var rectBtnPlayFirst = clone(rectBtn);
+        setAttrNS(rectBtnPlayFirst, "width", 590);
+        apdChild(gPlayFirst, rectBtnPlayFirst);
+
+        var pathPlay = this.pathPlay = createSVGElem("path");
+        setAttrsNS(pathPlay, {
+            fill: "hsl(120,100%,35%)",
+            d: "M22,22v56l56,-28z",
+            filter: "url(#filterGlow" + no + ")",
+            "pointer-events": "none"
+        });
+        var pathPlayFirst = clone(pathPlay);
+        setAttrNS(pathPlayFirst, "transform", "translate(115,0)");
+        var textPlayMML = createSVGElem("text");
+        setAttrsNS(textPlayMML, {
+            x: 345,
+            y: 72,
+            "font-family": "'Verdana'",
+            "font-size": 62,
+            "textLength": 280
+        });
+        apdChild(textPlayMML, document.createTextNode("Play MML"));
+        apdChild(gPlayFirst, textPlayMML);
+        apdChild(gPlayFirst, pathPlayFirst);
+        apdChild(svg, gPlayFirst);
+
+        if (!options.underground) {
+            var scripts = document.getElementsByTagName("script"),
+                parent = scripts.item(scripts.length - 1).parentNode;
+            apdChild(parent, svg);
         }
 
-        var btnPlayPause = this.btnPlayPause = document.createElement("button");
-        s = btnPlayPause.style;
-        s.margin = "0";
-        s.position = "absolute";
-        s.left = s.top = "0";
-        s.width = s.height = "20px";
-        btnPlayPause.addEventListener("click", this.onPlayPause.bind(this));
+        this.hasPlayedOnce = false;
+        this.isChangingVol = false;
+        this.hasReplacedFonts = false;
 
-        var btnPlayMML = this.btnPlayMML = btnPlayPause.cloneNode();
-        btnPlayMML.style.width = "128px";
-        btnPlayMML.addEventListener("click", this.onPlayFirst.bind(this));
-
-        var btnStop = this.btnStop = btnPlayPause.cloneNode();
-        btnStop.style.left = "20px";
-        btnStop.addEventListener("click", this.onStop.bind(this));
-
-        var btnVolume = this.btnVolume = btnPlayPause.cloneNode();
-        btnVolume.style.left = "";
-        btnVolume.style.right = "0";
-        btnVolume.addEventListener("click", this.onVolume.bind(this));
-
-        var imgPause = this.imgPause = document.createElement("img");
-        imgPause.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAAUVBMVEUAgf8Agv0AdvwAf/0AgP8Afv4AgPsAgP8Akf8Af/8AfvwAfv8Af/8AffoAfv8Af/0Afv8Agf8AgP0AgP8Agf8Agv8AgP0Aff0Agf8Afv8Af/5GU6gfAAAAGnRSTlMQCgZFLxwVDAJfQDgqHhigJyOWiFErdnZZWQOnFfsAAACjSURBVBjTbZFLDsMgDERtEzDhl5Bv2/sftDaq2i48i5H8JMwwQIxEyPARI1GMIIwheO9rFQvARAo5+H5OQ2f3gQUSgi85uaGUSwUkIGhrfonmWT2vTRBCnZyO963upioIQ8+HjvuufuQeFK7pqeO2qT/SKpBbSWPbsozNqTQGbMX9Q1caWtA+bl1kR/qFv65vePOZZiFmdQJxlFxFo2SkaH7HG2/2EtuThcAOAAAAAElFTkSuQmCC";
-        s = imgPause.style;
-        s.marginLeft = s.marginRight = dx + "px";
-        s.marginTop = s.marginBottom = dy + "px";
-        s.position = "absolute";
-        s.left = s.top = "0";
-        s.width = s.height = "20px";
-
-        var imgPlay = this.imgPlay = imgPause.cloneNode();
-        imgPlay.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAASFBMVEUAAAAAmgAAlQAAlwAAmAAAmQAAmgAAlwAAmwAAmQAAmQAAmQAAmAAAmQAAmQAAmAAAlwAAmQAAmQAAmAAAlwAAmQAAmQAAmADD6lrGAAAAF3RSTlMABwQKGRUNJRE5IC9UKkRqYE9ANXNkRrSOT5UAAACQSURBVBjTbZFbEsMgCEV9oIivxKQt+99p0cm0fnA+z1xHuBjjrPWCtc6ZB3E+phBSiv6vrU+QETHDpsVhIaK7ZQiil42AN3Oto1NBSa9wyqWzcJy1U8shzmxAqrx4neMqy4q8Tn446rTeGmj9zT8GNYhTfg7eKJBUqT9XP1JH0oZX11QL2atbyu0lh71k9Rxfym0PdbeElC0AAAAASUVORK5CYII=";
-        imgPlay.style.left = "25px";
-
-        var imgStop = this.imgStop = imgPause.cloneNode();
-        imgStop.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAAPFBMVEX+AD7/AD//AED/AEn+AD//AD/+AD/+AEH/ADn9ADv/AE3+AD79AD7/AD7/AED+AD7/AED8AD7/AD7+AD9mm+jzAAAAE3RSTlMqFhIIaUY9Hw0ZA1lOQjQmLWNiJUEu2wAAAINJREFUGNNtkUsOwzAIRMdgg/920vvftSiL1lJ47J6EgAG1Mmei8ECUmWtFNVV04WFpMV3BOSimjGQMmdCQGUy6pbcrGlfrspUYuUA+B4KSQTr7KftUAi1pp2yyCAHjPuU9EKxSPGVMpspbFle67e4gdyV3efdMNxA3un/Ie/9Cdt/xBc2vEO2zvZ1rAAAAAElFTkSuQmCC";
-
-        var imgVolume = this.imgVolume = imgPause.cloneNode();
-        imgVolume.src = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAMAAAC6V+0/AAAAS1BMVEV+fgB+fgB9fQB+fgB+fgCAgAB+fgB+fgB5eQB+fgB/fwCAgACPjwB+fgB9fQB8fAB9fQCIiAB+fgB+fgB9fQB+fgB/fwCAgAB+fgDkkneCAAAAGHRSTlMVLykkHRlGNg47IQoEXU0RPwd8aVVRhT4xQnacAAAAkklEQVQY04XR2w7DIAgGYASVauthW7vx/k+6v+mW7IJk3PkFEJG2bbuty6AUq4jUmGhZgTCQcEAYVyjBkFY5aJnTLEAHnRYl6Cv3w8xKkESEWljJfW+GyMqR6GNHe9gZfSIVWFlxusz2rMCRJEyc7hc21KNpZM0/2AuafvH5D91y7yJ/JHd495nuQtzVuUt2v+MNB6QSU7F5AiUAAAAASUVORK5CYII=";
-
-        var divDisplay = this.divDisplay = document.createElement("div");
-        s = divDisplay.style;
-        s.position = "absolute";
-        s.left = "40px";
-        s.top = "0";
-        s.width = "68px";
-        s.height = "20px";
-        s.backgroundColor = dispBkgColor;
-        s.boxSizing = "border-box";
-        s.border = dispBorder;
-
-        var divStatus = this.divStatus = document.createElement("div");
-        s = divStatus.style;
-        s.marginLeft = s.marginRight = "-1px";
-        s.marginTop = "-0.5em";
-        s.position = "absolute";
-        s.top = "9px";
-        s.width = "68px";
-        s.fontSize = "10px";
-
-        var divPlayMML = this.divPlayMML = document.createElement("div");
-        s = divPlayMML.style;
-        s.marginLeft = s.marginRight = dx + "px";
-        s.marginTop = "-0.5em";
-        s.position = "absolute";
-        s.left = "45px";
-        s.top = "50%";
-        s.fontSize = "12px";
-        divPlayMML.appendChild(document.createTextNode("Play MML"));
-
-        var divVolume = this.divVolume = document.createElement("div");
-        s = divVolume.style;
-        s.position = "absolute";
-        s.width = "88px";
-        s.visibility = "hidden";
-        s.backgroundColor = dispBkgColor;
-        s.boxSizing = "border-box";
-        s.border = dispBorder;
-        s.zIndex = "1";
-
-        var rangeVolume = this.rangeVolume = document.createElement("input");
-        rangeVolume.type = "range";
-        rangeVolume.defaultValue = (options.volume === undefined) ? "100" : options.volume + "";
-        rangeVolume.min = "0";
-        rangeVolume.max = "127";
-        rangeVolume.step = "1";
-        s = rangeVolume.style;
-        s.marginLeft = s.marginRight = "0";
-        s.marginTop = s.marginBottom = "-1px";
-        s.padding = "0";
-        s.left = s.top = "0";
-        s.position = "absolute";
-        s.width = "86px";
-        rangeVolume.addEventListener("input", this.onInput.bind(this));
-
-        btnPlayMML.appendChild(imgPlay);
-        btnPlayMML.appendChild(divPlayMML);
-
-        btnPlayPause.appendChild(imgPause);
-
-        btnStop.appendChild(imgStop);
-
-        btnVolume.appendChild(imgVolume);
-
-        divDisplay.appendChild(divStatus);
-
-        if (this.mmlStatus === MMLST_ARG) {
-            divContainer.appendChild(btnPlayMML);
-        }
-
-        divVolume.appendChild(rangeVolume);
-
-        var flmml = this.flmml = new FlMMLonHTML5(options.workerURL);
-        flmml.addEventListener("compilecomplete", this.onCompileComplete.bind(this));
-        flmml.addEventListener("buffering", this.onBuffering.bind(this));
-        flmml.addEventListener("complete", this.onComplete.bind(this));
-        flmml.addEventListener("syncinfo", this.onSyncInfo.bind(this));
-        if (options.volume !== undefined) {
-            flmml.setMasterVolume(options.volume);
-        }
+        players.push(this);
     }
+    
+    extend(FlMMLPlayer.prototype, {
+        setMasterVolume: function (volume) {
+            var tVol;
 
-    FlMMLPlayer.prototype.show = function (elem) {
-        var divPlayer = document.createElement("div");
-        divPlayer.className = "pikoplayer";
-        divPlayer.appendChild(this.divContainer);
-        divPlayer.appendChild(this.divVolume);
-        elem.parentNode.replaceChild(divPlayer, elem);
-    }
-
-    FlMMLPlayer.prototype.changeStatus = function (str) {
-        removeChildren(this.divStatus);
-        this.divStatus.appendChild(document.createTextNode(str));
-    }
-
-    FlMMLPlayer.prototype.showVolume = function () {
-        this.changeStatus("Volume:" + this.rangeVolume.value);
-        this.isDispVol = true;
-        clearTimeout(this.tIDDispVol);
-        this.tIDDispVol = setTimeout(this.onDispVolTimer.bind(this), 2000);
-    }
-
-    FlMMLPlayer.prototype.onReadyStateChange = function (e) {
-        if (this.xhr.readyState === XMLHttpRequest.DONE) {
-            removeChildren(this.divSysMsg);
-            if (this.xhr.status === 200) {
-                removeChildren(this.divContainer);
-                var s = this.divContainer.style;
-                s.backgroundColor = "transparent";
-                s.border = "";
-                this.divContainer.appendChild(this.btnPlayMML);
-                this.mml = this.xhr.responseText;
-                this.mmlStatus = MMLST_SUCCEED;
+            if (volume == null) {
+                volume = this.volume;
             } else {
-                this.divSysMsg.appendChild(document.createTextNode("Can't load the file."));
-                this.flmml = null;
-                this.mmlStatus = MMLST_FAILED;
+                this.volume = volume;
             }
-        }
-    }
-
-    FlMMLPlayer.prototype.onPlayFirst = function () {
-        var divContainer = this.divContainer;
-
-        divContainer.removeChild(this.btnPlayMML);
-        this.btnPlayMML.removeChild(this.imgPlay);
-        this.imgPlay.style.left = "0";
-
-        this.changeStatus("Compiling...");
-        divContainer.appendChild(this.btnPlayPause);
-        divContainer.appendChild(this.btnStop);
-        divContainer.appendChild(this.divDisplay);
-        divContainer.appendChild(this.btnVolume);
-
-        this.flmml.play(this.mml);
-    };
-
-    FlMMLPlayer.prototype.onPlayPause = function () {
-        removeChildren(this.btnPlayPause);
-        if (this.flmml.isPlaying()) {
-            this.btnPlayPause.appendChild(this.imgPlay);
-            this.flmml.pause();
-        } else {
-            this.btnPlayPause.appendChild(this.imgPause);
-            if (!this.flmml.isPaused()) {
-                this.isCompiling = true;
-                this.changeStatus("Compiling...");
+            if (this.logVolume) {
+                var f = 40.0, // floor
+                    r = 1.0 / f;
+                tVol = (Math.pow(f, volume / 127.0 - 1.0) - r) / (1 - r) * 127.0
+            } else {
+                tVol = volume;
             }
-            this.flmml.play(this.mml);
+            if (this.hasPlayedOnce) this.flmml.setMasterVolume(tVol);
+            //console.log(tVol.toFixed(2));
+        },
+
+        replaceFonts: function () {
+            if (!this.hasPlayedOnce || this.hasReplacedFonts || !FlMMLPlayer.hasLoadedFonts) return;
+
+            setAttrsNS(this.textDisplay, {
+                y: 45,
+                "font-family": "'Press Start 2P'",
+                "font-weight": "normal",
+                "font-size": 33
+            });
+            this.hasReplacedFonts = true;
+        },
+
+        getSVGPos: function (x, y) {
+            var point = this.svg.createSVGPoint();
+            point.x = x;
+            point.y = y;
+            var p = point.matrixTransform(this.svg.getScreenCTM().inverse());
+            return p;
+        },
+
+        changeStatus: function (str, txtLen) {
+            var textDisplay = this.textDisplay;
+
+            //removeChildren(textDisplay);
+            var child;
+            while ((child = textDisplay.lastChild)) textDisplay.removeChild(child);
+            apdChild(textDisplay, document.createTextNode(str));
+            if (txtLen) {
+                setAttrNS(textDisplay, "textLength", txtLen);
+            }
+        },
+
+        showVolume: function () {
+            var strVol = (this.volume | 0) + "";
+            while (strVol.length < 3) strVol = "\u00A0" + strVol;
+            this.changeStatus("Volume:" + strVol, 289);
+            this.isDispVol = true;
+            clearTimeout(this.tIDDispVol);
+            this.tIDDispVol = setTimeout(this.onDispVolTimer.bind(this), 2000);
+        },
+
+        changeVolume: function (px) {
+            var vol;
+            if (px < 230) {
+                vol = 0.0;
+            } else if (px >= 230 && px < 570) {
+                vol = (px - 230.0) / 340.0 * 127.0;
+            } else if (px >= 570) {
+                vol = 127.0;
+            }
+            if (this.flmml) {
+                this.setMasterVolume(vol);
+                this.showVolume();
+            }
+
+            if (px < 225) px = 225;
+            if (px > 575) px = 575;
+            setAttrNS(this.circleVolume, "cx", px);
+        },
+
+        onReadyStateChange: function (e) {
+            if (this.xhr.readyState === XMLHttpRequest.DONE) {
+                if (this.xhr.status === 200) {
+                    this.changeStatus("Compiling...", 347);
+                    show(this.gStop);
+                    hide(this.gStopD);
+                    this.mml = this.xhr.responseText;
+                    this.mmlStatus = MMLST_SUCCEED;
+                    this.flmml.play(this.mml);
+                    clearTimeout(this.tIDDispVol);
+                } else {
+                    this.changeStatus("Failure.", 232);
+                    this.flmml.release();
+                    this.flmml = null;
+                    this.mmlStatus = MMLST_FAILED;
+                }
+            }
+        },
+
+        playFirst: function () {
+            var flmml = this.flmml = new FlMMLonHTML5(this.workerURL);
+            this.setMasterVolume();
+            addEL(flmml, "compilecomplete", this.onCompileComplete.bind(this));
+            addEL(flmml, "buffering", this.onBuffering.bind(this));
+            addEL(flmml, "complete", this.onComplete.bind(this));
+            addEL(flmml, "syncinfo", this.onSyncInfo.bind(this));
+
+            var svg = this.svg,
+                no = this.no,
+                hue = this.hue;
+
+            var gPlay = this.gPlay = createSVGElem("g"),
+                gPlayD = this.gPlayD = createSVGElem("g"),
+                gPause = this.gPause = createSVGElem("g"),
+                gStop = this.gStop = createSVGElem("g"),
+                gDisplay = this.gDisplay = createSVGElem("g"),
+                gVolume = this.gVolume = createSVGElem("g");
+            addEL(gPlay, "click", this.playPause.bind(this));
+            addEL(gPause, "click", this.playPause.bind(this));
+            setAttrNS(gStop, "transform", "translate(100,0)");
+            addEL(gStop, "click", this.stop.bind(this));
+            var gStopD = this.gStopD = clone(gStop);
+
+            var rectBtn = this.rectBtn;
+            apdChild(gPlay, clone(rectBtn));
+            apdChild(gPause, clone(rectBtn));
+            apdChild(gStop, clone(rectBtn));
+            var rectBtnD = clone(rectBtn);
+            setAttrsNS(rectBtnD, {
+                stroke: "hsl(" + hue + ",15%,75%)",
+                "class": ""
+            });
+            apdChild(gPlayD, clone(rectBtnD));
+            apdChild(gStopD, clone(rectBtnD));
+
+            var pathPlay = this.pathPlay;
+            apdChild(gPlay, pathPlay);
+            var pathPlayD = clone(pathPlay);
+            setAttrsNS(pathPlayD, {
+                fill: "gray",
+                opacity: 0.5
+            });
+            apdChild(gPlayD, pathPlayD);
+
+            var rectPause1 = createSVGElem("rect");
+            setAttrsNS(rectPause1, {
+                x: 26,
+                y: 22,
+                width: 17,
+                height: 56,
+                fill: "hsl(210,100%,50%)",
+                filter: "url(#filterGlow" + no + ")",
+                "pointer-events": "none"
+            });
+            var rectPause2 = clone(rectPause1);
+            setAttrNS(rectPause2, "x", 57);
+            apdChild(gPause, rectPause1);
+            apdChild(gPause, rectPause2);
+
+            var rectStop = createSVGElem("rect");
+            setAttrsNS(rectStop, {
+                x: 23,
+                y: 23,
+                width: 54,
+                height: 54,
+                fill: "hsl(15,100%,50%)",
+                filter: "url(#filterGlow" + no + ")",
+                "pointer-events": "none"
+            });
+            apdChild(gStop, rectStop);
+
+            var rectStopD = clone(rectStop);
+            setAttrsNS(rectStopD, {
+                fill: "gray",
+                opacity: 0.5
+            });
+            apdChild(gStopD, rectStopD);
+
+            var rectDisplay = createSVGElem("rect");
+            setAttrsNS(rectDisplay, {
+                x: 203,
+                y: 5,
+                width: 394,
+                height: 44,
+                rx: 6,
+                ry: 6,
+                fill: "url(#gradDisp" + no + ")",
+                stroke: "hsl(" + hue + ",100%,30%)",
+                "stroke-width": 4,
+                "pointer-events": "none"
+            });
+            apdChild(gDisplay, rectDisplay);
+
+            var textDisplay = this.textDisplay = createSVGElem("text");
+            setAttrsNS(textDisplay, {
+                x: 401,
+                y: 43,
+                fill: "white",
+                "font-family": "'Courier New',Courier',monospace",
+                "font-weight": "bold",
+                "font-size": 50
+            });
+            apdChild(gDisplay, textDisplay);
+
+            var rectVolume = createSVGElem("rect");
+            setAttrsNS(rectVolume, {
+                x: 205,
+                y: 70,
+                width: 390,
+                height: 12,
+                rx: 4,
+                ry: 4,
+                fill: "url(#gradBtnPushed" + no + ")",
+                stroke: "hsl(" + hue + ",15%,75%)",
+                "stroke-width": 4
+            });
+            apdChild(gVolume, rectVolume);
+
+            var circleVolume = this.circleVolume = createSVGElem("circle");
+            setAttrsNS(circleVolume, {
+                cx: 498,
+                cy: 76,
+                r: 22,
+                fill: "url(#gradBtn" + no + ")",
+                stroke: "hsl(" + hue + ",15%,50%)",
+                "stroke-width": 4,
+                "class": "button"
+            });
+            setAttrNS(circleVolume, "cx", this.volume / 127.0 * 340.0 + 230.0 | 0);
+            apdChild(gVolume, circleVolume);
+
+            hide(gPlay, gPause, gStop, gStopD);
+
+            if (this.mmlStatus === MMLST_ARG) {
+                this.changeStatus("Compiling...", 347);
+                show(gStop);
+                flmml.play(this.mml);
+            } else if (this.mmlStatus === MMLST_WAIT) {
+                var xhr = this.xhr = new XMLHttpRequest();
+                addEL(xhr, "readystatechange", this.onReadyStateChange.bind(this));
+                xhr.open("GET", this.mmlURL);
+                xhr.send(null);
+                this.mmlStatus = MMLST_LOADING;
+                this.changeStatus("Loading...", 289);
+                show(gStopD);
+            }
+
+            svg.removeChild(this.gPlayFirst);
+            apdChild(svg, gPlay);
+            apdChild(svg, gPlayD);
+            apdChild(svg, gPause);
+            apdChild(svg, gStop);
+            apdChild(svg, gStopD);
+            apdChild(svg, gDisplay);
+            apdChild(svg, gVolume);
+
+            addEL(svg, "mousedown", this.onMouseDown.bind(this));
+            addEL(window, "mousemove", this.onMouseMove.bind(this));
+            addEL(window, "mouseup", this.onMouseUp.bind(this));
+            addEL(svg, "touchstart", this.onTouchStart.bind(this));
+            addEL(window, "touchmove", this.onTouchMove.bind(this));
+            addEL(window, "touchend", this.onMouseUp.bind(this));
+
+            this.hasPlayedOnce = true;
+            this.replaceFonts();
+        },
+
+        playPause: function () {
+            if (this.flmml.isPlaying()) {
+                show(this.gPlay);
+                hide(this.gPause);
+                this.flmml.pause();
+            } else {
+                show(this.gPause, this.gStop);
+                hide(this.gPlay, this.gStopD);
+                if (!this.flmml.isPaused()) {
+                    this.isCompiling = true;
+                    this.changeStatus("Compiling...", 347);
+                }
+                this.flmml.play(this.mml);
+            }
+            clearTimeout(this.tIDDispVol);
+            this.onDispVolTimer();
+        },
+
+
+        stop: function () {
+            show(this.gPlay, this.gStopD);
+            hide(this.gPause, this.gStop);
+            this.flmml.stop();
+            clearTimeout(this.tIDDispVol);
+            this.onDispVolTimer();
+        },
+
+        onMouseDown: function (e) {
+            if (!(e.buttons & 1) || !this.hasPlayedOnce) return;
+
+            var p = this.getSVGPos(e.clientX, e.clientY);
+            if (p.x >= 205 && p.x < 595 && p.y >= 50 && p.y < 100) {
+                this.changeVolume(p.x);
+                this.isChangingVol = true;
+            }
+        },
+
+        onMouseMove: function (e) {
+            if (!(e.buttons & 1) || !this.isChangingVol) return;
+
+            var p = this.getSVGPos(e.clientX, e.clientY);
+            this.changeVolume(p.x);
+            e.preventDefault();
+        },
+
+        onMouseUp: function (e) {
+            this.isChangingVol = false;
+        },
+
+        onTouchStart: function (e) {
+            if (!this.hasPlayedOnce) return;
+
+            var touch = e.touches[0];
+            var p = this.getSVGPos(touch.clientX, touch.clientY);
+            if (p.x >= 205 && p.x < 595 && p.y >= 50 && p.y < 100) {
+                this.changeVolume(p.x);
+                this.isChangingVol = true;
+            }
+        },
+
+        onTouchMove: function (e) {
+            if (!this.isChangingVol) return;
+
+            var touch = e.touches[0];
+            var p = this.getSVGPos(touch.clientX, touch.clientY);
+            this.changeVolume(p.x);
+            e.preventDefault();
+        },
+
+        onCompileComplete: function () {
+            show(this.gPause);
+            hide(this.gPlayD);
+            this.isCompiling = false;
+        },
+
+        onBuffering: function (e) {
+            if (e.progress === 100) {
+                this.isBuffering = false;
+                clearTimeout(this.tIDDispVol);
+                this.onDispVolTimer();
+            } else {
+                if (!this.isDispVol) {
+                    this.changeStatus("Buffering:" + (e.progress < 10 ? "\u00A0" : "") + e.progress + "%", 377);
+                    this.isBuffering = true;
+                }
+            }
+        },
+
+        onComplete: function () {
+            show(this.gPlay, this.gStopD);
+            hide(this.gPause, this.gStop);
+            clearTimeout(this.tIDDispVol);
+            this.onDispVolTimer();
+        },
+
+        onSyncInfo: function () {
+            if (this.isDispVol || this.isCompiling || this.isBuffering) return;
+            this.changeStatus(this.flmml.getNowTimeStr() + "/" + this.flmml.getTotalTimeStr(), 318);
+        },
+
+        onDispVolTimer: function () {
+            this.isDispVol = false;
+            if (this.isCompiling) {
+                this.changeStatus("Compiling...", 347);
+            } else if (!this.isBuffering) {
+                this.onSyncInfo();
+            }
+        },
+
+
+        getElement: function () {
+            return this.svg;
         }
-        clearTimeout(this.tIDDispVol);
-        this.onDispVolTimer();
-    };
-    
+    });
 
-    FlMMLPlayer.prototype.onStop = function () {
-        removeChildren(this.btnPlayPause);
-        this.btnPlayPause.appendChild(this.imgPlay);
-        this.btnStop.disabled = "disabled";
-        this.imgStop.style.opacity = "0.4";
-        this.flmml.stop();
-        clearTimeout(this.tIDDispVol);
-        this.onDispVolTimer();
-    };
 
-    FlMMLPlayer.prototype.onVolume = function () {
-        var s, rectCnt, rectVol, rectSldr;
-
-        s = this.divVolume.style;
-        if (s.visibility === "hidden") {
-            s.left = s.top = "0";
-            rectCnt = this.divContainer.getBoundingClientRect();
-            rectVol = this.divVolume.getBoundingClientRect();
-            rectSldr = this.rangeVolume.getBoundingClientRect();
-            s.left = (rectCnt.left - rectVol.left + 40).toFixed(1) + "px";
-            s.top = (rectCnt.top - rectVol.top + 20).toFixed(1) + "px";
-            s.height = (rectSldr.bottom - rectSldr.top).toFixed(1) + "px";
-            s.visibility = "visible";
-            this.showVolume();
-        } else if (s.visibility === "visible") {
-            s.visibility = "hidden";
+    FlMMLPlayer.onActiveFonts = function () {
+        FlMMLPlayer.hasLoadedFonts = true;
+        for (var i = players.length; i--;) {
+            players[i].replaceFonts.call(players[i]);
         }
     };
-    
-    FlMMLPlayer.prototype.onInput = function () {
-        this.flmml.setMasterVolume(parseInt(this.rangeVolume.value));
-        this.showVolume();
-    };
-
-    FlMMLPlayer.prototype.onCompileComplete = function () {
-        this.btnStop.disabled = "";
-        this.imgStop.style.opacity = "1.0";
-        this.isCompiling = false;
-    };
-
-    FlMMLPlayer.prototype.onBuffering = function (e) {
-        if (e.progress === 100) {
-            this.isBuffering = false;
-        } else {
-            this.changeStatus("Buffering:" + e.progress + "%");
-            this.isBuffering = true;
-        }
-    };
-
-    FlMMLPlayer.prototype.onComplete = function () {
-        removeChildren(this.btnPlayPause);
-        this.btnPlayPause.appendChild(this.imgPlay);
-        this.btnStop.disabled = "disabled";
-        this.imgStop.style.opacity = "0.4";
-        clearTimeout(this.tIDDispVol);
-        this.onDispVolTimer();
-    };
-
-    FlMMLPlayer.prototype.onSyncInfo = function () {
-        if (this.isDispVol || this.isCompiling || this.isBuffering) return;
-        this.changeStatus(this.flmml.getNowTimeStr() + "/" + this.flmml.getTotalTimeStr());
-    };
-
-    FlMMLPlayer.prototype.onDispVolTimer = function () {
-        this.isDispVol = false;
-        this.onSyncInfo();
-    };
+    FlMMLPlayer.hasLoadedFonts = false;
     
     return FlMMLPlayer;
-}(document);
+}(window, document);
+
+// Web Font Loader
+var WebFontConfig = {
+    google: {
+        families: ["Press+Start+2P::latin"]
+    },
+    active: FlMMLPlayer.onActiveFonts
+};
+(function (document) {
+    var wf = document.createElement("script");
+    wf.src = ("https:" === document.location.protocol ? "https" : "http") + "://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js";
+    wf.type = "text/javascript";
+    wf.async = "true";
+    var s = document.getElementsByTagName("script").item(0);
+    s.parentNode.insertBefore(wf, s);
+})(document);
