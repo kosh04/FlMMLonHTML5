@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Nicopedia-FlMMLonHTML5
 // @namespace   https://github.com/kosh04/FlMMLonHTML5
-// @version     0.20150617
+// @version     0.20150629
 // @description ニコニコ大百科のピコカキコプレーヤーをFlMMLonHTML5に置き換える (デバッグ用)
 // @updateURL   https://github.com/kosh04/FlMMLonHTML5/raw/feature-userscript/userscript/nicopedia-flmmlonhtml5.user.js
 // @grant       GM_getResourceText

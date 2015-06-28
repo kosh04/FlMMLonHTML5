@@ -621,6 +621,10 @@ svg#flmmlplayer" + no + " text{text-anchor:middle;pointer-events:none}\
 
         getElement: function () {
             return this.svg;
+        },
+
+        show: function (elem) {
+            elem.parentNode.replaceChild(this.svg, elem);
         }
     });
 
