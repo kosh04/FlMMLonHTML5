@@ -1,29 +1,16 @@
 // ==UserScript==
 // @name        Nicopedia-FlMMLonHTML5
 // @namespace   https://github.com/kosh04/FlMMLonHTML5
-// @version     0.20150629
+// @version     0.20150701
 // @description ニコニコ大百科のピコカキコプレーヤーをFlMMLonHTML5に置き換える (デバッグ用)
 // @updateURL   https://github.com/kosh04/FlMMLonHTML5/raw/feature-userscript/userscript/nicopedia-flmmlonhtml5.user.js
 // @grant       GM_getResourceText
 // @match       http://dic.nicovideo.jp/*
-// @require     https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js
 // @resource    flmmlworker.js  https://rawgit.com/kosh04/FlMMLonHTML5/feature-userscript/project/flmmlworker-raw.js
 // @author      kosh (mono)
 // ==/UserScript==
 
-/*
-## Before
-<div id="piko777">
-  <img src="/img/pikoplayer.png" onclick="HororeChuchuParero.MMLPlayer.show_player('piko777', 777)">
-</div>
-
-## After
-<div id="piko777">
-  <div class="pikoplayer">
-    <!-- player body -->
-  </div>
-</div>
-*/
+"use strict";
 
 function loadScript(src) {
     var s = document.createElement("script");
@@ -35,22 +22,21 @@ function loadScript(src) {
 loadScript("https://rawgit.com/kosh04/FlMMLonHTML5/feature-userscript/project/flmmlonhtml5-raw.js");
 loadScript("https://rawgit.com/kosh04/FlMMLonHTML5/feature-userscript/project/flmmlplayer-raw.js");
 
-(function($) {
-    "use strict";
+var code = GM_getResourceText("flmmlworker.js");
+var blob = new Blob([code], { type: "text/javascript" });
+var workerURL = URL.createObjectURL(blob);
 
-    var code = GM_getResourceText("flmmlworker.js");
-    var blob = new Blob([code], { type: "text/javascript" });
-    var workerURL = URL.createObjectURL(blob);
+var pikoList = document.querySelectorAll("[id^=piko]");
 
-    $("[id^=piko]").each(function() {
-        var $piko = $(this);
-        var mml_id = $piko.attr("id").substring(4); // "piko777" -> "777"
-        var code = "new FlMMLPlayer(%s).show(this);".replace("%s", JSON.stringify({
-            mmlURL: "/mml/" + mml_id,
-            height: "1.75em",
-            underground: true,
-            workerURL: workerURL
-        }));
-        $piko.children("img").attr("onclick", code);
-    });
-})(jQuery);
+[].forEach.call(pikoList, function(piko) {
+    var mml_id = piko.id.substring(4); // "piko777" -> "777"
+    var code = "new FlMMLPlayer(%s).show(this);".replace("%s", JSON.stringify({
+      mmlURL: "/mml/" + mml_id,
+      height: "1.65em",
+      underground: true,
+      workerURL: workerURL
+    }));
+    var imgPikoplayer = piko.children.item(0);
+    imgPikoplayer.setAttribute("onclick", code);
+});
+
