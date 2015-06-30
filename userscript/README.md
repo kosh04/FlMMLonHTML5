@@ -12,9 +12,15 @@ FlMMLonHTML5 に置き換えて動作させるユーザスクリプトです。
 - Chrome + Tempermonkey
 - Firefox + Greasemonkey
 - Opera + Violetmonkey
+- Android 版 Firefox + [usi (User|Unified Script Injector)](https://addons.mozilla.org/en-us/android/addon/userunified-script-injector/)
 
 ## インストール
 
-Greasemonkeyをインストールしたブラウザで、[nicopedia-flmmlonhtml5.user.js](https://github.com/kosh04/FlMMLonHTML5/raw/feature-userscript/userscript/nicopedia-flmmlonhtml5.user.js) をクリックしてスクリプトをインストールしてください。
+Greasemonkey をインストールした各ブラウザで以下のリンクのいずれかをクリックしてスクリプトをインストールしてください。
+usi 版は `flmmlworker.js` をスクリプト内に直接埋め込んでいます。
+
+- [nicopedia-flmmlonhtml5.user.js](https://github.com/kosh04/FlMMLonHTML5/raw/feature-userscript/userscript/nicopedia-flmmlonhtml5.user.js) (通常はこちら)
+- [nicopedia-flmmlonhtml5-usi.user.js](https://github.com/kosh04/FlMMLonHTML5/raw/feature-userscript/userscript/nicopedia-flmmlonhtml5-usi.user.js) (Android+Firefox+usi の場合)
 
 使わなくなったらスクリプトを無効化するか、削除してください。
+
