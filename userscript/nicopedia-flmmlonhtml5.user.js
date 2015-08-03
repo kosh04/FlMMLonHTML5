@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Nicopedia-FlMMLonHTML5
 // @namespace   https://github.com/kosh04/FlMMLonHTML5
-// @version     0.20150701
+// @version     0.20150804
 // @description ニコニコ大百科のピコカキコプレーヤーをFlMMLonHTML5に置き換える (デバッグ用)
 // @updateURL   https://github.com/kosh04/FlMMLonHTML5/raw/feature-userscript/userscript/nicopedia-flmmlonhtml5.user.js
 // @grant       GM_getResourceText
@@ -29,6 +29,7 @@ var workerURL = URL.createObjectURL(blob);
 var pikoList = document.querySelectorAll("[id^=piko]");
 
 [].forEach.call(pikoList, function(piko) {
+    if (!piko.id.match(/^piko\d+/)) return;
     var mml_id = piko.id.substring(4); // "piko777" -> "777"
     var code = "new FlMMLPlayer(%s).show(this);".replace("%s", JSON.stringify({
       mmlURL: "/mml/" + mml_id,
