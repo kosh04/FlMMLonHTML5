@@ -1,1 +1,653 @@
-"use strict";var FlMMLPlayer=function(t,i){function e(t,i){for(var e in i)t[e]=i[e];return t}function s(t,i,e){t.addEventListener(i,e)}function o(t,i){t.appendChild(i)}function n(t){return t.cloneNode()}function l(t){return i.createElementNS("http://www.w3.org/2000/svg",t)}function h(t,i,e){t.setAttributeNS(null,i,e)}function a(t,i){for(var e in i)t.setAttributeNS(null,e,i[e])}function r(){for(var t=arguments.length;t--;)arguments[t].style.display="inline"}function u(){for(var t=arguments.length;t--;)arguments[t].style.display="none"}function c(t){1&t.buttons&&t.preventDefault()}function m(t){var e=this.no=y.length,r=this.hue=null==t.hue?200:t.hue;this.volume=null==t.volume?100:t.volume,this.logVolume=!!t.logVolume,this.workerURL=t.workerURL,t.mmlURL&&""!==t.mmlURL?(this.mmlURL=t.mmlURL,this.mmlStatus=f):(this.mml=t.mml,this.mmlStatus=g);var u=this.svg=l("svg");a(u,{id:"flmmlplayer"+e,viewBox:"0 0 600 100"}),u.style.height=t.height||"1.5em",s(u,"mousedown",c),s(u,"mousemove",c);var m=i.createElement("style");m.setAttribute("type","text/css"),o(m,i.createTextNode("svg#flmmlplayer"+e+" .clickable-button:active{fill:url(#gradBtnPushed"+e+");}svg#flmmlplayer"+e+" .clickable-button:hover{stroke:hsl("+r+",100%,75%)}svg#flmmlplayer"+e+" text{text-anchor:middle;pointer-events:none}")),o(u,m);var p=l("defs"),d=l("filter"),v=l("feGaussianBlur"),x=l("feMerge"),S=l("feMergeNode"),V=l("feMergeNode");a(d,{id:"filterGlow"+e,x:"-150%",y:"-100%",width:"600%",height:"400%"}),a(v,{"in":"SourceGraphic",stdDeviation:8,result:"blur"}),h(S,"in","blur"),h(V,"in","SourceGraphic"),o(x,S),o(x,V),o(d,v),o(d,x),o(p,d);var D=l("linearGradient"),P=l("linearGradient"),w=l("stop"),b=l("stop");a(D,{id:"gradBtn"+e,x1:"0%",y1:"0%",x2:"0%",y2:"100%"}),a(w,{offset:0,"stop-color":"hsl("+r+",30%,98%)"}),a(b,{offset:1,"stop-color":"hsl("+r+",30%,83%)"}),o(D,w),o(D,b),a(P,{id:"gradBtnPushed"+e,x1:"0%",y1:"0%",x2:"0%",y2:"100%"}),b=n(b),w=n(w),h(b,"offset",0),h(w,"offset",1),o(P,b),o(P,w),o(p,D),o(p,P);var M=l("linearGradient"),C=l("stop"),T=l("stop");a(M,{id:"gradDisp"+e,x1:"0%",y1:"0%",x2:"0%",y2:"100%"}),a(C,{offset:0,"stop-color":"hsl("+r+",100%,2%)"}),a(T,{offset:1,"stop-color":"hsl("+r+",100%,30%)"}),o(M,C),o(M,T),o(p,M),o(u,p);var L=this.gPlayFirst=l("g");s(L,"click",this.playFirst.bind(this));var k=this.rectBtn=l("rect");a(k,{x:5,y:5,width:90,height:90,rx:6,ry:6,fill:"url(#gradBtn"+e+")",stroke:"hsl("+r+",15%,50%)","stroke-width":4,"class":"clickable-button"});var B=n(k);h(B,"width",590),o(L,B);var F=this.pathPlay=l("path");a(F,{fill:"hsl(120,100%,35%)",d:"M22,22v56l56,-28z",filter:"url(#filterGlow"+e+")","pointer-events":"none"});var G=n(F);h(G,"transform","translate(115,0)");var N=l("text");if(a(N,{x:345,y:72,"font-family":"'Verdana'","font-size":62,textLength:280}),o(N,i.createTextNode("Play MML")),o(L,N),o(L,G),o(u,L),!t.underground){var R=i.getElementsByTagName("script"),U=R.item(R.length-1).parentNode;o(U,u)}this.hasPlayedOnce=!1,this.isChangingVol=!1,this.hasReplacedFonts=!1,y.push(this)}var g=1,f=2,p=3,d=4,v=5,y=[];return e(m.prototype,{setMasterVolume:function(t){var i;if(null==t?t=this.volume:this.volume=t,this.logVolume){var e=40,s=1/e;i=(Math.pow(e,t/127-1)-s)/(1-s)*127}else i=t;this.hasPlayedOnce&&this.flmml.setMasterVolume(i)},replaceFonts:function(){this.hasPlayedOnce&&!this.hasReplacedFonts&&m.hasLoadedFonts&&(a(this.textDisplay,{y:45,"font-family":"'Press Start 2P'","font-weight":"normal","font-size":33}),this.hasReplacedFonts=!0)},getSVGPos:function(t,i){var e=this.svg.createSVGPoint();e.x=t,e.y=i;var s=e.matrixTransform(this.svg.getScreenCTM().inverse());return s},changeStatus:function(t,e){for(var s,n=this.textDisplay;s=n.lastChild;)n.removeChild(s);o(n,i.createTextNode(t)),e&&h(n,"textLength",e)},showVolume:function(){for(var t=(0|this.volume)+"";t.length<3;)t=" "+t;this.changeStatus("Volume:"+t,289),this.isDispVol=!0,clearTimeout(this.tIDDispVol),this.tIDDispVol=setTimeout(this.onDispVolTimer.bind(this),2e3)},changeVolume:function(t){var i;230>t?i=0:t>=230&&570>t?i=(t-230)/340*127:t>=570&&(i=127),this.flmml&&(this.setMasterVolume(i),this.showVolume()),225>t&&(t=225),t>575&&(t=575),h(this.circleVolume,"cx",t)},onReadyStateChange:function(t){this.xhr.readyState===XMLHttpRequest.DONE&&(200===this.xhr.status?(this.changeStatus("Compiling...",347),r(this.gStop),u(this.gStopD),this.mml=this.xhr.responseText,this.mmlStatus=d,this.flmml.play(this.mml),clearTimeout(this.tIDDispVol)):(this.changeStatus("Failure.",232),this.flmml.release(),this.flmml=null,this.mmlStatus=v))},playFirst:function(){var i=this.flmml=new FlMMLonHTML5(this.workerURL);this.setMasterVolume(),s(i,"compilecomplete",this.onCompileComplete.bind(this)),s(i,"buffering",this.onBuffering.bind(this)),s(i,"complete",this.onComplete.bind(this)),s(i,"syncinfo",this.onSyncInfo.bind(this));var e=this.svg,c=this.no,m=this.hue,d=this.gPlay=l("g"),v=this.gPlayD=l("g"),y=this.gPause=l("g"),x=this.gStop=l("g"),S=this.gDisplay=l("g"),V=this.gVolume=l("g");s(d,"click",this.playPause.bind(this)),s(y,"click",this.playPause.bind(this)),h(x,"transform","translate(100,0)"),s(x,"click",this.stop.bind(this));var D=this.gStopD=n(x),P=this.rectBtn;o(d,n(P)),o(y,n(P)),o(x,n(P));var w=n(P);a(w,{stroke:"hsl("+m+",15%,75%)","class":""}),o(v,n(w)),o(D,n(w));var b=this.pathPlay;o(d,b);var M=n(b);a(M,{fill:"gray",opacity:.5}),o(v,M);var C=l("rect");a(C,{x:26,y:22,width:17,height:56,fill:"hsl(210,100%,50%)",filter:"url(#filterGlow"+c+")","pointer-events":"none"});var T=n(C);h(T,"x",57),o(y,C),o(y,T);var L=l("rect");a(L,{x:23,y:23,width:54,height:54,fill:"hsl(15,100%,50%)",filter:"url(#filterGlow"+c+")","pointer-events":"none"}),o(x,L);var k=n(L);a(k,{fill:"gray",opacity:.5}),o(D,k);var B=l("rect");a(B,{x:203,y:5,width:394,height:44,rx:6,ry:6,fill:"url(#gradDisp"+c+")",stroke:"hsl("+m+",100%,30%)","stroke-width":4,"pointer-events":"none"}),o(S,B);var F=this.textDisplay=l("text");a(F,{x:401,y:43,fill:"white","font-family":"'Courier New',Courier',monospace","font-weight":"bold","font-size":50}),o(S,F);var G=l("rect");a(G,{x:205,y:70,width:390,height:12,rx:4,ry:4,fill:"url(#gradBtnPushed"+c+")",stroke:"hsl("+m+",15%,75%)","stroke-width":4}),o(V,G);var N=this.circleVolume=l("circle");if(a(N,{cx:498,cy:76,r:22,fill:"url(#gradBtn"+c+")",stroke:"hsl("+m+",15%,50%)","stroke-width":4,"class":"button"}),h(N,"cx",this.volume/127*340+230|0),o(V,N),u(d,y,x,D),this.mmlStatus===g)this.changeStatus("Compiling...",347),r(x),i.play(this.mml);else if(this.mmlStatus===f){var R=this.xhr=new XMLHttpRequest;s(R,"readystatechange",this.onReadyStateChange.bind(this)),R.open("GET",this.mmlURL),R.send(null),this.mmlStatus=p,this.changeStatus("Loading...",289),r(D)}e.removeChild(this.gPlayFirst),o(e,d),o(e,v),o(e,y),o(e,x),o(e,D),o(e,S),o(e,V),s(e,"mousedown",this.onMouseDown.bind(this)),s(t,"mousemove",this.onMouseMove.bind(this)),s(t,"mouseup",this.onMouseUp.bind(this)),s(e,"touchstart",this.onTouchStart.bind(this)),s(t,"touchmove",this.onTouchMove.bind(this)),s(t,"touchend",this.onMouseUp.bind(this)),this.hasPlayedOnce=!0,this.replaceFonts()},playPause:function(){this.flmml.isPlaying()?(r(this.gPlay),u(this.gPause),this.flmml.pause()):(r(this.gPause,this.gStop),u(this.gPlay,this.gStopD),this.flmml.isPaused()||(this.isCompiling=!0,this.changeStatus("Compiling...",347)),this.flmml.play(this.mml)),clearTimeout(this.tIDDispVol),this.onDispVolTimer()},stop:function(){r(this.gPlay,this.gStopD),u(this.gPause,this.gStop),this.flmml.stop(),clearTimeout(this.tIDDispVol),this.onDispVolTimer()},onMouseDown:function(t){if(1&t.buttons&&this.hasPlayedOnce){var i=this.getSVGPos(t.clientX,t.clientY);i.x>=205&&i.x<595&&i.y>=50&&i.y<100&&(this.changeVolume(i.x),this.isChangingVol=!0)}},onMouseMove:function(t){if(1&t.buttons&&this.isChangingVol){var i=this.getSVGPos(t.clientX,t.clientY);this.changeVolume(i.x),t.preventDefault()}},onMouseUp:function(t){this.isChangingVol=!1},onTouchStart:function(t){if(this.hasPlayedOnce){var i=t.touches[0],e=this.getSVGPos(i.clientX,i.clientY);e.x>=205&&e.x<595&&e.y>=50&&e.y<100&&(this.changeVolume(e.x),this.isChangingVol=!0)}},onTouchMove:function(t){if(this.isChangingVol){var i=t.touches[0],e=this.getSVGPos(i.clientX,i.clientY);this.changeVolume(e.x),t.preventDefault()}},onCompileComplete:function(){r(this.gPause),u(this.gPlayD),this.isCompiling=!1},onBuffering:function(t){100===t.progress?(this.isBuffering=!1,clearTimeout(this.tIDDispVol),this.onDispVolTimer()):this.isDispVol||(this.changeStatus("Buffering:"+(t.progress<10?" ":"")+t.progress+"%",377),this.isBuffering=!0)},onComplete:function(){r(this.gPlay,this.gStopD),u(this.gPause,this.gStop),clearTimeout(this.tIDDispVol),this.onDispVolTimer()},onSyncInfo:function(){this.isDispVol||this.isCompiling||this.isBuffering||this.changeStatus(this.flmml.getNowTimeStr()+"/"+this.flmml.getTotalTimeStr(),318)},onDispVolTimer:function(){this.isDispVol=!1,this.isCompiling?this.changeStatus("Compiling...",347):this.isBuffering||this.onSyncInfo()},getElement:function(){return this.svg}}),m.onActiveFonts=function(){m.hasLoadedFonts=!0;for(var t=y.length;t--;)y[t].replaceFonts.call(y[t])},m.hasLoadedFonts=!1,m}(window,document),WebFontConfig={google:{families:["Press+Start+2P::latin"]},active:FlMMLPlayer.onActiveFonts};!function(t){var i=t.createElement("script");i.src=("https:"===t.location.protocol?"https":"http")+"://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js",i.type="text/javascript",i.async="true";var e=t.getElementsByTagName("script").item(0);e.parentNode.insertBefore(i,e)}(document);
+﻿"use strict";
+
+var FlMMLPlayer = function (window, document) {
+    var MMLST_ARG = 1,
+        MMLST_WAIT = 2,
+        MMLST_LOADING = 3,
+        MMLST_SUCCEED = 4,
+        MMLST_FAILED = 5,
+
+        players = [];
+
+    function extend(target, object) {
+        for (var name in object) {
+            target[name] = object[name];
+        }
+        return target;
+    }
+
+    function addEL(elem, type, func) {
+        elem.addEventListener(type, func);
+    }
+
+    function apdChild(elem, child) {
+        elem.appendChild(child);
+    }
+
+    function clone(elem) {
+        return elem.cloneNode();
+    }
+
+    function createSVGElem(name) {
+        return document.createElementNS("http://www.w3.org/2000/svg", name);
+    }
+
+    function setAttrNS(elem, name, value) {
+        elem.setAttributeNS(null, name, value);
+    }
+
+    function setAttrsNS(elem, list) {
+        for (var v in list) {
+            elem.setAttributeNS(null, v, list[v]);
+        }
+    }
+
+    function show() {
+        for (var i = arguments.length; i--; ) {
+            arguments[i].style.display = "inline";
+        }
+    }
+
+    function hide() {
+        for (var i = arguments.length; i--;) {
+            arguments[i].style.display = "none";
+        }
+    }
+
+    //function removeChildren(elem) {
+    //    var child;
+    //    while ((child = elem.lastChild)) {
+    //        elem.removeChild(child);
+    //    }
+    //}
+
+    function prevDefMouseLBtn(e) {
+        if (e.buttons & 1) e.preventDefault();
+    }
+
+    function FlMMLPlayer(options) {
+        var no = this.no = players.length;
+
+        var hue = this.hue = options.hue == null ? 200 : options.hue;
+        this.volume = options.volume == null ? 100.0 : options.volume;
+        this.logVolume = !!options.logVolume;
+        this.workerURL = options.workerURL;
+
+        if (options.mmlURL && options.mmlURL !== "") {
+            this.mmlURL = options.mmlURL;
+            this.mmlStatus = MMLST_WAIT;
+        } else {
+            this.mml = options.mml;
+            this.mmlStatus = MMLST_ARG;
+        }
+
+        var svg = this.svg = createSVGElem("svg");
+        setAttrsNS(svg, {
+            id: "flmmlplayer" + no,
+            viewBox: "0 0 600 100"
+        });
+        svg.style.height = options.height || "1.5em";
+        addEL(svg, "mousedown", prevDefMouseLBtn);
+        addEL(svg, "mousemove", prevDefMouseLBtn);
+
+        var style = document.createElement("style");
+        style.setAttribute("type", "text/css");
+        apdChild(style, document.createTextNode("\
+svg#flmmlplayer" + no + " .clickable-button:active{fill:url(#gradBtnPushed" + no + ");}\
+svg#flmmlplayer" + no + " .clickable-button:hover{stroke:hsl(" + hue + ",100%,75%)}\
+svg#flmmlplayer" + no + " text{text-anchor:middle;pointer-events:none}\
+"));
+        apdChild(svg, style);
+
+        var defs = createSVGElem("defs");
+
+        var filterGlow = createSVGElem("filter"),
+            feBlur = createSVGElem("feGaussianBlur"),
+            feMerge = createSVGElem("feMerge"),
+            feMergeNodeGlow = createSVGElem("feMergeNode"),
+            feMergeNodeSrc = createSVGElem("feMergeNode");
+        setAttrsNS(filterGlow, {
+            id: "filterGlow" + no,
+            x: "-150%",
+            y: "-100%",
+            width: "600%",
+            height: "400%"
+        });
+        setAttrsNS(feBlur, {
+            "in": "SourceGraphic",
+            stdDeviation: 8,
+            result: "blur"
+        });
+        setAttrNS(feMergeNodeGlow, "in", "blur");
+        setAttrNS(feMergeNodeSrc, "in", "SourceGraphic");
+        apdChild(feMerge, feMergeNodeGlow);
+        apdChild(feMerge, feMergeNodeSrc);
+        apdChild(filterGlow, feBlur);
+        apdChild(filterGlow, feMerge);
+        apdChild(defs, filterGlow);
+
+        var gradBtn = createSVGElem("linearGradient"),
+            gradBtnPushed = createSVGElem("linearGradient"),
+            stopBtnL = createSVGElem("stop"),
+            stopBtnD = createSVGElem("stop");
+        setAttrsNS(gradBtn, {
+            id: "gradBtn" + no,
+            x1: "0%",
+            y1: "0%",
+            x2: "0%",
+            y2: "100%"
+        });
+        setAttrsNS(stopBtnL, {
+            offset: 0,
+            "stop-color": "hsl(" + hue + ",30%,98%)"
+        });
+        setAttrsNS(stopBtnD, {
+            offset: 1,
+            "stop-color": "hsl(" + hue + ",30%,83%)"
+        });
+        apdChild(gradBtn, stopBtnL);
+        apdChild(gradBtn, stopBtnD);
+        setAttrsNS(gradBtnPushed, {
+            id: "gradBtnPushed" + no,
+            x1: "0%",
+            y1: "0%",
+            x2: "0%",
+            y2: "100%"
+        });
+        stopBtnD = clone(stopBtnD);
+        stopBtnL = clone(stopBtnL);
+        setAttrNS(stopBtnD, "offset", 0);
+        setAttrNS(stopBtnL, "offset", 1);
+        apdChild(gradBtnPushed, stopBtnD);
+        apdChild(gradBtnPushed, stopBtnL);
+        apdChild(defs, gradBtn);
+        apdChild(defs, gradBtnPushed);
+
+        var gradDisp = createSVGElem("linearGradient"),
+            stopDispD = createSVGElem("stop"),
+            stopDispL = createSVGElem("stop");
+        setAttrsNS(gradDisp, {
+            id: "gradDisp" + no,
+            x1: "0%",
+            y1: "0%",
+            x2: "0%",
+            y2: "100%"
+        });
+        setAttrsNS(stopDispD, {
+            offset: 0,
+            "stop-color": "hsl(" + hue + ",100%,2%)"
+        });
+        setAttrsNS(stopDispL, {
+            offset: 1,
+            "stop-color": "hsl(" + hue + ",100%,30%)"
+        });
+        apdChild(gradDisp, stopDispD);
+        apdChild(gradDisp, stopDispL);
+        apdChild(defs, gradDisp);
+
+        apdChild(svg, defs);
+        
+        var gPlayFirst = this.gPlayFirst = createSVGElem("g");
+        addEL(gPlayFirst, "click", this.playFirst.bind(this));
+
+        var rectBtn = this.rectBtn = createSVGElem("rect");
+        setAttrsNS(rectBtn, {
+            x: 5,
+            y: 5,
+            width: 90,
+            height: 90,
+            rx: 6,
+            ry: 6,
+            fill: "url(#gradBtn" + no + ")",
+            stroke: "hsl(" + hue + ",15%,50%)",
+            "stroke-width": 4,
+            "class": "clickable-button"
+        });
+        var rectBtnPlayFirst = clone(rectBtn);
+        setAttrNS(rectBtnPlayFirst, "width", 590);
+        apdChild(gPlayFirst, rectBtnPlayFirst);
+
+        var pathPlay = this.pathPlay = createSVGElem("path");
+        setAttrsNS(pathPlay, {
+            fill: "hsl(120,100%,35%)",
+            d: "M22,22v56l56,-28z",
+            filter: "url(#filterGlow" + no + ")",
+            "pointer-events": "none"
+        });
+        var pathPlayFirst = clone(pathPlay);
+        setAttrNS(pathPlayFirst, "transform", "translate(115,0)");
+        var textPlayMML = createSVGElem("text");
+        setAttrsNS(textPlayMML, {
+            x: 345,
+            y: 72,
+            "font-family": "'Verdana'",
+            "font-size": 62,
+            "textLength": 280
+        });
+        apdChild(textPlayMML, document.createTextNode("Play MML"));
+        apdChild(gPlayFirst, textPlayMML);
+        apdChild(gPlayFirst, pathPlayFirst);
+        apdChild(svg, gPlayFirst);
+
+        if (!options.underground) {
+            var scripts = document.getElementsByTagName("script"),
+                parent = scripts.item(scripts.length - 1).parentNode;
+            apdChild(parent, svg);
+        }
+
+        this.hasPlayedOnce = false;
+        this.isChangingVol = false;
+        this.hasReplacedFonts = false;
+
+        players.push(this);
+    }
+    
+    extend(FlMMLPlayer.prototype, {
+        setMasterVolume: function (volume) {
+            var tVol;
+
+            if (volume == null) {
+                volume = this.volume;
+            } else {
+                this.volume = volume;
+            }
+            if (this.logVolume) {
+                var f = 40.0, // floor
+                    r = 1.0 / f;
+                tVol = (Math.pow(f, volume / 127.0 - 1.0) - r) / (1 - r) * 127.0
+            } else {
+                tVol = volume;
+            }
+            if (this.hasPlayedOnce) this.flmml.setMasterVolume(tVol);
+            //console.log(tVol.toFixed(2));
+        },
+
+        replaceFonts: function () {
+            if (!this.hasPlayedOnce || this.hasReplacedFonts || !FlMMLPlayer.hasLoadedFonts) return;
+
+            setAttrsNS(this.textDisplay, {
+                y: 45,
+                "font-family": "'Press Start 2P'",
+                "font-weight": "normal",
+                "font-size": 33
+            });
+            this.hasReplacedFonts = true;
+        },
+
+        getSVGPos: function (x, y) {
+            var point = this.svg.createSVGPoint();
+            point.x = x;
+            point.y = y;
+            var p = point.matrixTransform(this.svg.getScreenCTM().inverse());
+            return p;
+        },
+
+        changeStatus: function (str, txtLen) {
+            var textDisplay = this.textDisplay;
+
+            //removeChildren(textDisplay);
+            var child;
+            while ((child = textDisplay.lastChild)) textDisplay.removeChild(child);
+            apdChild(textDisplay, document.createTextNode(str));
+            if (txtLen) {
+                setAttrNS(textDisplay, "textLength", txtLen);
+            }
+        },
+
+        showVolume: function () {
+            var strVol = (this.volume | 0) + "";
+            while (strVol.length < 3) strVol = "\u00A0" + strVol;
+            this.changeStatus("Volume:" + strVol, 289);
+            this.isDispVol = true;
+            clearTimeout(this.tIDDispVol);
+            this.tIDDispVol = setTimeout(this.onDispVolTimer.bind(this), 2000);
+        },
+
+        changeVolume: function (px) {
+            var vol;
+            if (px < 230) {
+                vol = 0.0;
+            } else if (px >= 230 && px < 570) {
+                vol = (px - 230.0) / 340.0 * 127.0;
+            } else if (px >= 570) {
+                vol = 127.0;
+            }
+            if (this.flmml) {
+                this.setMasterVolume(vol);
+                this.showVolume();
+            }
+
+            if (px < 225) px = 225;
+            if (px > 575) px = 575;
+            setAttrNS(this.circleVolume, "cx", px);
+        },
+
+        onReadyStateChange: function (e) {
+            if (this.xhr.readyState === XMLHttpRequest.DONE) {
+                if (this.xhr.status === 200) {
+                    this.changeStatus("Compiling...", 347);
+                    show(this.gStop);
+                    hide(this.gStopD);
+                    this.mml = this.xhr.responseText;
+                    this.mmlStatus = MMLST_SUCCEED;
+                    this.flmml.play(this.mml);
+                    clearTimeout(this.tIDDispVol);
+                } else {
+                    this.changeStatus("Failure.", 232);
+                    this.flmml.release();
+                    this.flmml = null;
+                    this.mmlStatus = MMLST_FAILED;
+                }
+            }
+        },
+
+        playFirst: function () {
+            var flmml = this.flmml = new FlMMLonHTML5(this.workerURL);
+            this.setMasterVolume();
+            addEL(flmml, "compilecomplete", this.onCompileComplete.bind(this));
+            addEL(flmml, "buffering", this.onBuffering.bind(this));
+            addEL(flmml, "complete", this.onComplete.bind(this));
+            addEL(flmml, "syncinfo", this.onSyncInfo.bind(this));
+
+            var svg = this.svg,
+                no = this.no,
+                hue = this.hue;
+
+            var gPlay = this.gPlay = createSVGElem("g"),
+                gPlayD = this.gPlayD = createSVGElem("g"),
+                gPause = this.gPause = createSVGElem("g"),
+                gStop = this.gStop = createSVGElem("g"),
+                gDisplay = this.gDisplay = createSVGElem("g"),
+                gVolume = this.gVolume = createSVGElem("g");
+            addEL(gPlay, "click", this.playPause.bind(this));
+            addEL(gPause, "click", this.playPause.bind(this));
+            setAttrNS(gStop, "transform", "translate(100,0)");
+            addEL(gStop, "click", this.stop.bind(this));
+            var gStopD = this.gStopD = clone(gStop);
+
+            var rectBtn = this.rectBtn;
+            apdChild(gPlay, clone(rectBtn));
+            apdChild(gPause, clone(rectBtn));
+            apdChild(gStop, clone(rectBtn));
+            var rectBtnD = clone(rectBtn);
+            setAttrsNS(rectBtnD, {
+                stroke: "hsl(" + hue + ",15%,75%)",
+                "class": ""
+            });
+            apdChild(gPlayD, clone(rectBtnD));
+            apdChild(gStopD, clone(rectBtnD));
+
+            var pathPlay = this.pathPlay;
+            apdChild(gPlay, pathPlay);
+            var pathPlayD = clone(pathPlay);
+            setAttrsNS(pathPlayD, {
+                fill: "gray",
+                opacity: 0.5
+            });
+            apdChild(gPlayD, pathPlayD);
+
+            var rectPause1 = createSVGElem("rect");
+            setAttrsNS(rectPause1, {
+                x: 26,
+                y: 22,
+                width: 17,
+                height: 56,
+                fill: "hsl(210,100%,50%)",
+                filter: "url(#filterGlow" + no + ")",
+                "pointer-events": "none"
+            });
+            var rectPause2 = clone(rectPause1);
+            setAttrNS(rectPause2, "x", 57);
+            apdChild(gPause, rectPause1);
+            apdChild(gPause, rectPause2);
+
+            var rectStop = createSVGElem("rect");
+            setAttrsNS(rectStop, {
+                x: 23,
+                y: 23,
+                width: 54,
+                height: 54,
+                fill: "hsl(15,100%,50%)",
+                filter: "url(#filterGlow" + no + ")",
+                "pointer-events": "none"
+            });
+            apdChild(gStop, rectStop);
+
+            var rectStopD = clone(rectStop);
+            setAttrsNS(rectStopD, {
+                fill: "gray",
+                opacity: 0.5
+            });
+            apdChild(gStopD, rectStopD);
+
+            var rectDisplay = createSVGElem("rect");
+            setAttrsNS(rectDisplay, {
+                x: 203,
+                y: 5,
+                width: 394,
+                height: 44,
+                rx: 6,
+                ry: 6,
+                fill: "url(#gradDisp" + no + ")",
+                stroke: "hsl(" + hue + ",100%,30%)",
+                "stroke-width": 4,
+                "pointer-events": "none"
+            });
+            apdChild(gDisplay, rectDisplay);
+
+            var textDisplay = this.textDisplay = createSVGElem("text");
+            setAttrsNS(textDisplay, {
+                x: 401,
+                y: 43,
+                fill: "white",
+                "font-family": "'Courier New',Courier',monospace",
+                "font-weight": "bold",
+                "font-size": 50
+            });
+            apdChild(gDisplay, textDisplay);
+
+            var rectVolume = createSVGElem("rect");
+            setAttrsNS(rectVolume, {
+                x: 205,
+                y: 70,
+                width: 390,
+                height: 12,
+                rx: 4,
+                ry: 4,
+                fill: "url(#gradBtnPushed" + no + ")",
+                stroke: "hsl(" + hue + ",15%,75%)",
+                "stroke-width": 4
+            });
+            apdChild(gVolume, rectVolume);
+
+            var circleVolume = this.circleVolume = createSVGElem("circle");
+            setAttrsNS(circleVolume, {
+                cx: 498,
+                cy: 76,
+                r: 22,
+                fill: "url(#gradBtn" + no + ")",
+                stroke: "hsl(" + hue + ",15%,50%)",
+                "stroke-width": 4,
+                "class": "button"
+            });
+            setAttrNS(circleVolume, "cx", this.volume / 127.0 * 340.0 + 230.0 | 0);
+            apdChild(gVolume, circleVolume);
+
+            hide(gPlay, gPause, gStop, gStopD);
+
+            if (this.mmlStatus === MMLST_ARG) {
+                this.changeStatus("Compiling...", 347);
+                show(gStop);
+                flmml.play(this.mml);
+            } else if (this.mmlStatus === MMLST_WAIT) {
+                var xhr = this.xhr = new XMLHttpRequest();
+                addEL(xhr, "readystatechange", this.onReadyStateChange.bind(this));
+                xhr.open("GET", this.mmlURL);
+                xhr.send(null);
+                this.mmlStatus = MMLST_LOADING;
+                this.changeStatus("Loading...", 289);
+                show(gStopD);
+            }
+
+            svg.removeChild(this.gPlayFirst);
+            apdChild(svg, gPlay);
+            apdChild(svg, gPlayD);
+            apdChild(svg, gPause);
+            apdChild(svg, gStop);
+            apdChild(svg, gStopD);
+            apdChild(svg, gDisplay);
+            apdChild(svg, gVolume);
+
+            addEL(svg, "mousedown", this.onMouseDown.bind(this));
+            addEL(window, "mousemove", this.onMouseMove.bind(this));
+            addEL(window, "mouseup", this.onMouseUp.bind(this));
+            addEL(svg, "touchstart", this.onTouchStart.bind(this));
+            addEL(window, "touchmove", this.onTouchMove.bind(this));
+            addEL(window, "touchend", this.onMouseUp.bind(this));
+
+            this.hasPlayedOnce = true;
+            this.replaceFonts();
+        },
+
+        playPause: function () {
+            if (this.flmml.isPlaying()) {
+                show(this.gPlay);
+                hide(this.gPause);
+                this.flmml.pause();
+            } else {
+                show(this.gPause, this.gStop);
+                hide(this.gPlay, this.gStopD);
+                if (!this.flmml.isPaused()) {
+                    this.isCompiling = true;
+                    this.changeStatus("Compiling...", 347);
+                }
+                this.flmml.play(this.mml);
+            }
+            clearTimeout(this.tIDDispVol);
+            this.onDispVolTimer();
+        },
+
+
+        stop: function () {
+            show(this.gPlay, this.gStopD);
+            hide(this.gPause, this.gStop);
+            this.flmml.stop();
+            clearTimeout(this.tIDDispVol);
+            this.onDispVolTimer();
+        },
+
+        onMouseDown: function (e) {
+            if (!(e.buttons & 1) || !this.hasPlayedOnce) return;
+
+            var p = this.getSVGPos(e.clientX, e.clientY);
+            if (p.x >= 205 && p.x < 595 && p.y >= 50 && p.y < 100) {
+                this.changeVolume(p.x);
+                this.isChangingVol = true;
+            }
+        },
+
+        onMouseMove: function (e) {
+            if (!(e.buttons & 1) || !this.isChangingVol) return;
+
+            var p = this.getSVGPos(e.clientX, e.clientY);
+            this.changeVolume(p.x);
+            e.preventDefault();
+        },
+
+        onMouseUp: function (e) {
+            this.isChangingVol = false;
+        },
+
+        onTouchStart: function (e) {
+            if (!this.hasPlayedOnce) return;
+
+            var touch = e.touches[0];
+            var p = this.getSVGPos(touch.clientX, touch.clientY);
+            if (p.x >= 205 && p.x < 595 && p.y >= 50 && p.y < 100) {
+                this.changeVolume(p.x);
+                this.isChangingVol = true;
+            }
+        },
+
+        onTouchMove: function (e) {
+            if (!this.isChangingVol) return;
+
+            var touch = e.touches[0];
+            var p = this.getSVGPos(touch.clientX, touch.clientY);
+            this.changeVolume(p.x);
+            e.preventDefault();
+        },
+
+        onCompileComplete: function () {
+            show(this.gPause);
+            hide(this.gPlayD);
+            this.isCompiling = false;
+        },
+
+        onBuffering: function (e) {
+            if (e.progress === 100) {
+                this.isBuffering = false;
+                clearTimeout(this.tIDDispVol);
+                this.onDispVolTimer();
+            } else {
+                if (!this.isDispVol) {
+                    this.changeStatus("Buffering:" + (e.progress < 10 ? "\u00A0" : "") + e.progress + "%", 377);
+                    this.isBuffering = true;
+                }
+            }
+        },
+
+        onComplete: function () {
+            show(this.gPlay, this.gStopD);
+            hide(this.gPause, this.gStop);
+            clearTimeout(this.tIDDispVol);
+            this.onDispVolTimer();
+        },
+
+        onSyncInfo: function () {
+            if (this.isDispVol || this.isCompiling || this.isBuffering) return;
+            this.changeStatus(this.flmml.getNowTimeStr() + "/" + this.flmml.getTotalTimeStr(), 318);
+        },
+
+        onDispVolTimer: function () {
+            this.isDispVol = false;
+            if (this.isCompiling) {
+                this.changeStatus("Compiling...", 347);
+            } else if (!this.isBuffering) {
+                this.onSyncInfo();
+            }
+        },
+
+
+        getElement: function () {
+            return this.svg;
+        }
+    });
+
+
+    FlMMLPlayer.onActiveFonts = function () {
+        FlMMLPlayer.hasLoadedFonts = true;
+        for (var i = players.length; i--;) {
+            players[i].replaceFonts.call(players[i]);
+        }
+    };
+    FlMMLPlayer.hasLoadedFonts = false;
+    
+    return FlMMLPlayer;
+}(window, document);
+
+// Web Font Loader
+var WebFontConfig = {
+    google: {
+        families: ["Press+Start+2P::latin"]
+    },
+    active: FlMMLPlayer.onActiveFonts
+};
+(function (document) {
+    var wf = document.createElement("script");
+    wf.src = ("https:" === document.location.protocol ? "https" : "http") + "://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js";
+    wf.type = "text/javascript";
+    wf.async = "true";
+    var s = document.getElementsByTagName("script").item(0);
+    s.parentNode.insertBefore(wf, s);
+})(document);

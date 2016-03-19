@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "out": "flmmlworker.js",
+        "removeComments": true,
+        "noImplicitAny": false,
+        "sourceMap": true
+    }
+}
