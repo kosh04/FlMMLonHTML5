@@ -7,6 +7,21 @@ FlMMLonHTML5 に置き換えて動作させるユーザスクリプトです。
 
 ご利用は自己責任でお願いします。
 
+## インストール
+
+以下のリンクからスクリプトをインストールしてください。
+
+https://greasyfork.org/ja/scripts/13555
+
+使わなくなったらスクリプトを無効化するか、削除してください。
+
+## 動作環境
+
+- Chrome + Tempermonkey
+- Firefox + Greasemonkey
+- Opera + Violetmonkey
+- Android 版 Firefox + [usi (User|Unified Script Injector)](https://addons.mozilla.org/en-us/android/addon/userunified-script-injector/)
+
 ## ニコニコ大百科のHTML5版ピコカキコ (pikokakiko.js) との違い
 
 2018年09月04日、ニコニコ大百科のピコカキコがHTML5に対応しました。
@@ -16,21 +31,3 @@ http://blog.nicovideo.jp/niconews/86056.html
 
 なので、このユーザスクリプトの役目は一応果たしましたが、
 こちらは可能な限り carborane3/FlMMLonHTML5 の最新版を追従＆提供することで差別化を図っています。
-
-## 動作環境
-
-- Chrome + Tempermonkey
-- Firefox + Greasemonkey
-- Opera + Violetmonkey
-- Android 版 Firefox + [usi (User|Unified Script Injector)](https://addons.mozilla.org/en-us/android/addon/userunified-script-injector/)
-
-## インストール
-
-Greasemonkey をインストールした各ブラウザで以下のリンクのいずれかをクリックしてスクリプトをインストールしてください。
-usi 版は `flmmlworker.js` をスクリプト内に直接埋め込んでいます。
-
-- [nicopedia-flmmlonhtml5.user.js](https://github.com/kosh04/FlMMLonHTML5/raw/feature-userscript/userscript/nicopedia-flmmlonhtml5.user.js) (通常はこちら)
-- [nicopedia-flmmlonhtml5-usi.user.js](https://github.com/kosh04/FlMMLonHTML5/raw/feature-userscript/userscript/nicopedia-flmmlonhtml5-usi.user.js) (Android+Firefox+usi の場合)
-
-使わなくなったらスクリプトを無効化するか、削除してください。
-
