@@ -7,6 +7,16 @@ FlMMLonHTML5 に置き換えて動作させるユーザスクリプトです。
 
 ご利用は自己責任でお願いします。
 
+## ニコニコ大百科のHTML5版ピコカキコ (pikokakiko.js) との違い
+
+2018年09月04日、ニコニコ大百科のピコカキコがHTML5に対応しました。
+プレイヤーは別物ですが MML エンジン部分は FlMMLonHTML5 を採用しているようです。
+
+http://blog.nicovideo.jp/niconews/86056.html
+
+なので、このユーザスクリプトの役目は一応果たしましたが、
+こちらは可能な限り carborane3/FlMMLonHTML5 の最新版を追従＆提供することで差別化を図っています。
+
 ## 動作環境
 
 - Chrome + Tempermonkey
