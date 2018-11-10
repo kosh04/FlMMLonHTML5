@@ -1,12 +1,12 @@
 // ==UserScript==
 // @name        Nicopedia-FlMMLonHTML5
 // @namespace   https://github.com/kosh04/FlMMLonHTML5
-// @version     0.20181016
+// @version     0.20181110
 // @description ニコニコ大百科のピコカキコプレーヤーをFlMMLonHTML5に置き換える (デバッグ用)
 // @grant       GM_getResourceText
 // @match       http://dic.nicovideo.jp/*
 // @match       https://dic.nicovideo.jp/*
-// @resource    flmmlworker.js  https://carborane3.github.io/FlMMLonHTML5/flmmlworker.js
+// @resource    flmmlworker.js  https://argentum384.github.io/flmml-on-html5/flmmlworker.js
 // @noframes
 // @author      kosh (mono)
 // ==/UserScript==
@@ -18,9 +18,9 @@ function loadScript(src) {
     document.head.appendChild(s);
 }
 
-// NOTE: バージョンは flmmlonthml5.js のヘッダーコメント参照
-loadScript("https://carborane3.github.io/FlMMLonHTML5/flmmlonhtml5.js");
-loadScript("https://carborane3.github.io/FlMMLonHTML5/flmmlplayer.js");
+// NOTE: バージョンは flmmlonhtml5.js のヘッダーコメント参照
+loadScript("https://argentum384.github.io/flmml-on-html5/flmmlonhtml5.js");
+loadScript("https://argentum384.github.io/flmml-on-html5/flmmlplayer.js");
 
 const code = GM_getResourceText("flmmlworker.js");
 const blob = new Blob([code], { type: "text/javascript" });
